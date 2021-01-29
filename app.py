@@ -1,11 +1,34 @@
 import random
 import pyperclip
 from getpass import getpass
-global storage
-storage = {}
-    
+import json
+
+def GetData():
+    data = {}
+    with open('data.json') as infile:
+        data = json.load(infile)
+    return data
+
+def StoreData(website_name, user_id, user_pass, user_note):
+    try:
+        data = GetData()
+    except:
+        data = {}
+    if(website_name not in data.keys()):
+        data[website_name] = {user_id: [user_pass, user_note]}
+    else:
+        if(user_id in data[website_name]):
+            print('This account has already been added!', end = ' ')
+            overrideData = YesNoQuestion('Override account information?')
+            if(not overrideData):
+                main()
+        data[website_name][user_id] = [user_pass, user_note]
+    with open('data.json', 'w') as outfile:
+        json.dump(data, outfile)
+    main()
+
 def GenerateRandomPassword():
-    includeSpecialChar = (YesNoQuestion('Include special characters?'))
+    includeSpecialChar = YesNoQuestion('Include special characters?')
     password_length = (random.randint(20, 50))
     password = ''
     for position in range(password_length):
@@ -23,7 +46,7 @@ def GenerateRandomPassword():
             password += chr(random.randint(65, 90))
         elif(char_type == 7 or char_type == 8):
             password += chr(random.randint(48, 57))
-        elif(includeSpecialChar == 'y'):
+        elif(includeSpecialChar):
             password += special_char[random.randint(0, len(special_char) - 1)]
     if(len(password) > 0):
         pyperclip.copy(password)
@@ -40,16 +63,11 @@ def encrypt(password):
 
 def AddAccount():
     # Name, UserId/Email, Password
-    name = input('Name / URL: ').lower()
-    userID = input('UserID / EmailID: ').lower()
-    userPass = getpass(prompt = 'Password: ')
-    userNote = input('Notes (Press ENTER to skip) ')
-    new_data = [userID, userPass, userNote]
-    if(name in storage):
-        storage[name].append(new_data)
-    else:
-        storage[name] = [new_data]
-    main()
+    website_name = input('Name / URL: ').lower()
+    user_id = input('UserID / EmailID: ').lower()
+    user_pass = getpass(prompt = 'Password: ')
+    user_note = input('Notes (Press ENTER to skip) ')
+    StoreData(website_name, user_id, user_pass, user_note)
 
 def SearchPassword():
     pass
