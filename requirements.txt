@@ -1,1 +1,6 @@
+numpy==1.19.5
+pathlib==1.0.1
 pyperclip==1.8.1
+python-dotenv==0.15.0
+tabel==1.2.3
+tabulate==0.8.7
