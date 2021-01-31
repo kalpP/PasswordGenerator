@@ -21,13 +21,12 @@ env_path = Path('.') / '.env'
 load_dotenv(dotenv_path=env_path)
 SALT = os.getenv("SALT")
 
-def ClearTerminal():
-    # Windows
-    if(os.name == 'nt'):
-        _ = os.system('cls')
-    # Mac and Linux
-    else:
-        _ = os.system('clear')
+def YesNoQuestion(question):
+    result = input(f'{question} (y/n)? ')
+    while(result.lower() not in ['y', 'n']):
+        print(f'Invalid input!')
+        result = input(f'{question} (y/n)? ')
+    return True if result.lower() == 'y' else False
 
 def GetData():
     data = {}
@@ -79,6 +78,14 @@ def GenerateRandomPassword():
         print('Copied password to clipboard!')
     return password
 
+def ClearTerminal():
+    # Windows
+    if(os.name == 'nt'):
+        _ = os.system('cls')
+    # Mac and Linux
+    else:
+        _ = os.system('clear')
+
 def encryptPassword(password):
     pass
 
@@ -124,24 +131,6 @@ def ShowAllPasswords():
     except:
         print('No data available.')
 
-def YesNoQuestion(question):
-    result = input(f'{question} (y/n)? ')
-    while(result.lower() not in ['y', 'n']):
-        print(f'Invalid input!')
-        result = input(f'{question} (y/n)? ')
-    return True if result.lower() == 'y' else False
-
-def GetAction():
-    action = input('Select a command (a - add / s - search / all - show all / g - generate password / c - clear / q - quit): ')
-    while(action.lower() not in ['a','s','all','g','c','q']):
-        print('Invalid input!')
-        action = input('Select a command (a - add / s - search / all - show all / g - generate password / c - clear / q - quit): ')
-    return action
-
-def DeleteAllData():
-    if(os.path.exists('data.json')):
-        os.remove('data.json')
-
 def HashPassword(password):
     hashed = hashlib.pbkdf2_hmac('sha256', bytes(password, encoding='utf-8'), bytes(SALT, encoding='utf-8'), 100000)
     return(hashed.hex())
@@ -173,6 +162,10 @@ def ChangeMasterPassword():
     print('Please try again later...')
     return False
 
+def DeleteAllData():
+    if(os.path.exists('data.json')):
+        os.remove('data.json')
+
 def ValidateUser():
     global firstLogin
     incorrect_guesses = 0
@@ -193,7 +186,14 @@ def ValidateUser():
             main()
     DeleteAllData()
     return False
-    
+
+def GetAction():
+    action = input('Select a command (a - add / s - search / all - show all / g - generate password / c - clear / r - reset password / q - quit): ')
+    while(action.lower() not in ['a','s','all','g','c','r','q']):
+        print('Invalid input!')
+        action = input('Select a command (a - add / s - search / all - show all / g - generate password / c - clear / q - quit): ')
+    return action
+  
 def main():
     if(firstLogin):
         allow_access = ValidateUser()
@@ -216,6 +216,9 @@ def main():
         GenerateRandomPassword()
     elif(action == 'c'):
         ClearTerminal()
+        print('\n')
+    elif(action == 'r'):
+        ChangeMasterPassword()
         print('\n')
     main()
 
