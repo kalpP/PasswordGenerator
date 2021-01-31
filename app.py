@@ -121,7 +121,6 @@ def ShowAllPasswords():
                 userNote_arr.append(data[website][user][1])
         table = Tabel([website_arr, userId_arr, userPass_arr, userNote_arr], columns = ["Website", "UserID", "Password", "Note(s)"])
         print(table)
-        print('\n\n')
     except:
         print('No data available.')
 
@@ -144,15 +143,14 @@ def DeleteAllData():
         os.remove('data.json')
 
 def HashPassword(password):
-    #hashed = hashlib.pbkdf2_hmac('sha256', bytes(password, encoding='utf-8'), bytes(SALT, encoding='utf-8'), 100000)
-    #return(hashed.hex())
-    return password
+    hashed = hashlib.pbkdf2_hmac('sha256', bytes(password, encoding='utf-8'), bytes(SALT, encoding='utf-8'), 100000)
+    return(hashed.hex())
 
 def SetNewPassword():
     new_password = getpass('New Master Password: ')
     confirm_password = getpass('Confirm Password: ')
     if(HashPassword(new_password) == HashPassword(confirm_password)):
-        set_key(env_path, "MASTER_PASSWORD", f"{new_password}")
+        set_key(env_path, "MASTER_PASSWORD", f"{HashPassword(new_password)}")
         print('Password changed!')
         return True
     print('Please try again later...')
@@ -169,8 +167,9 @@ def ChangeMasterPassword():
             master_password = getpass('Current Master Password: ')
             master_password = HashPassword(master_password)
         else:
-            SetNewPassword()
-            ValidateUser()
+            if(SetNewPassword()):
+                print('Please restart the program!\n\n')
+                exit(0)
     print('Please try again later...')
     return False
 
@@ -196,26 +195,28 @@ def ValidateUser():
     return False
     
 def main():
-    print(HashPassword(''))
     if(firstLogin):
         allow_access = ValidateUser()
         if(not allow_access):
             exit(0)
     action = GetAction()
     if(action == 'q'):
+        print('\n\n')
         exit(0)
     elif(action == 'a'):
         AddAccount()
+        print('\n')
     elif(action == 's'):
         SearchPassword()
+        print('\n')
     elif(action == 'all'):
         ShowAllPasswords()
+        print('\n')
     elif(action == 'g'):
         GenerateRandomPassword()
     elif(action == 'c'):
         ClearTerminal()
-    elif(action == 'r'):
-        ChangeMasterPassword()
+        print('\n')
     main()
 
 if __name__ == "__main__":
