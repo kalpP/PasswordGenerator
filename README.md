@@ -13,4 +13,6 @@
 2. The content of the .env file should be:
    ```
    MASTER_PASSWORD = "<your master password>"
+   SALT = "<a random string>"
    ```
+   NOTE: YOU NOT CHANGE YOUR SALT WITHOUT MANUALLY CHANGING MASTER_PASSWORD IN .ENV FILE
