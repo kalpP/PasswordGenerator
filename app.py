@@ -87,10 +87,16 @@ def ClearTerminal():
         _ = os.system('clear')
 
 def encryptPassword(password):
-    pass
+    encrypted_password = ''
+    for character in password:
+        encrypted_password += chr(ord(character) + 4)
+    return encrypted_password
 
 def decryptPassword(password):
-    pass
+    decrypted_password = ''
+    for character in password:
+        decrypted_password += chr(ord(character) - 4)
+    return decrypted_password
 
 def encryptNote(password):
     pass
@@ -103,12 +109,14 @@ def AddAccount():
     website_name = input('Name / URL: ').lower()
     user_id = input('UserID / EmailID: ').lower()
     user_pass = getpass(prompt = 'Password (--generate to assign random passowrd): ')
+    user_pass = encryptPassword(user_pass)
     if(user_pass == '--generate'):
-        user_pass = GenerateRandomPassword()
+        user_pass = encryptPassword(GenerateRandomPassword())
     user_note = input('Notes (Press ENTER to skip) ')
     StoreData(website_name, user_id, user_pass, user_note)
 
 def SearchPassword():
+    # Search and copy password for relevant account
     pass
 
 def ShowAllPasswords():
@@ -120,11 +128,10 @@ def ShowAllPasswords():
             for user in data[website].keys():
                 website_arr.append(website)
                 userId_arr.append(user)
-                '''
                 # Display password in the table
-                userPass_arr.append(data[website][user][0])
-                '''
-                userPass_arr.append('*' * (random.randint(6,12)))
+                userPass_arr.append(decryptPassword(data[website][user][0]))
+                # More secure: does not show password in table
+                #userPass_arr.append('*' * (random.randint(6,12)))
                 userNote_arr.append(data[website][user][1])
         table = Tabel([website_arr, userId_arr, userPass_arr, userNote_arr], columns = ["Website", "UserID", "Password", "Note(s)"])
         print(table)
