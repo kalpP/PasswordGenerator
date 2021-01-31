@@ -13,7 +13,7 @@ import time
 import hashlib
 
 from pathlib import Path
-from dotenv import load_dotenv
+from dotenv import load_dotenv, set_key
 
 firstLogin = True
 
@@ -133,10 +133,10 @@ def YesNoQuestion(question):
     return True if result.lower() == 'y' else False
 
 def GetAction():
-    action = input('Select a command (a - add / s - search / all - show all / g - generate password / c - clear / r - reset password / q - quit): ')
-    while(action.lower() not in ['a','s','all','g','c','r','q']):
+    action = input('Select a command (a - add / s - search / all - show all / g - generate password / c - clear / q - quit): ')
+    while(action.lower() not in ['a','s','all','g','c','q']):
         print('Invalid input!')
-        action = input('Select a command (a - add / s - search / all - show all / g - generate password / c - clear / r - reset password / q - quit): ')
+        action = input('Select a command (a - add / s - search / all - show all / g - generate password / c - clear / q - quit): ')
     return action
 
 def DeleteAllData():
@@ -144,10 +144,35 @@ def DeleteAllData():
         os.remove('data.json')
 
 def HashPassword(password):
-    hashed = hashlib.pbkdf2_hmac('sha256', bytes(password, encoding='utf-8'), bytes(SALT, encoding='utf-8'), 100000)
-    return(hashed.hex())
+    #hashed = hashlib.pbkdf2_hmac('sha256', bytes(password, encoding='utf-8'), bytes(SALT, encoding='utf-8'), 100000)
+    #return(hashed.hex())
+    return password
+
+def SetNewPassword():
+    new_password = getpass('New Master Password: ')
+    confirm_password = getpass('Confirm Password: ')
+    if(HashPassword(new_password) == HashPassword(confirm_password)):
+        set_key(env_path, "MASTER_PASSWORD", f"{new_password}")
+        print('Password changed!')
+        return True
+    print('Please try again later...')
+    return False
 
 def ChangeMasterPassword():
+    incorrect_guesses = 0
+    master_password = getpass('Current Master Password: ')
+    master_password = HashPassword(master_password)
+    while(incorrect_guesses < 4):
+        if(master_password != os.getenv("MASTER_PASSWORD")):
+            incorrect_guesses += 1
+            print(f'Incorrect password! {5 - incorrect_guesses} attempts remaining..')
+            master_password = getpass('Current Master Password: ')
+            master_password = HashPassword(master_password)
+        else:
+            SetNewPassword()
+            ValidateUser()
+    print('Please try again later...')
+    return False
 
 def ValidateUser():
     global firstLogin
@@ -166,7 +191,7 @@ def ValidateUser():
             master_password = HashPassword(master_password)
         else:
             firstLogin = False
-            return True
+            main()
     DeleteAllData()
     return False
     
