@@ -10,6 +10,7 @@ from getpass import getpass
 import json
 import os
 import time
+import hashlib
 
 from pathlib import Path
 from dotenv import load_dotenv
@@ -18,7 +19,7 @@ firstLogin = True
 
 env_path = Path('.') / '.env'
 load_dotenv(dotenv_path=env_path)
-MASTER_PASSWORD = os.getenv("MASTER_PASSWORD")
+SALT = os.getenv("SALT")
 
 def ClearTerminal():
     # Windows
@@ -132,25 +133,37 @@ def YesNoQuestion(question):
     return True if result.lower() == 'y' else False
 
 def GetAction():
-    action = input('Select a command (a - add / s - search / all - show all / g - generate password / c - clear / q - quit): ')
-    while(action.lower() not in ['a','s','all','g','c','q']):
+    action = input('Select a command (a - add / s - search / all - show all / g - generate password / c - clear / r - reset password / q - quit): ')
+    while(action.lower() not in ['a','s','all','g','c','r','q']):
         print('Invalid input!')
-        action = input('Select a command (a - add / s - search / all - show all / g - generate password / c - clear / q - quit): ')
+        action = input('Select a command (a - add / s - search / all - show all / g - generate password / c - clear / r - reset password / q - quit): ')
     return action
 
 def DeleteAllData():
     if(os.path.exists('data.json')):
         os.remove('data.json')
 
+def HashPassword(password):
+    hashed = hashlib.pbkdf2_hmac('sha256', bytes(password, encoding='utf-8'), bytes(SALT, encoding='utf-8'), 100000)
+    return(hashed.hex())
+
+def ChangeMasterPassword():
+
 def ValidateUser():
     global firstLogin
     incorrect_guesses = 0
-    master_password = getpass('Master Password: ')
+    master_password = getpass('Master Password (--r to reset): ')
+    if(master_password == "--r"):
+        ChangeMasterPassword()
+    master_password = HashPassword(master_password)
     while(incorrect_guesses < 4):
-        if(master_password != MASTER_PASSWORD):
+        if(master_password != os.getenv("MASTER_PASSWORD")):
             incorrect_guesses += 1
             print(f'Incorrect password! {5 - incorrect_guesses} attempts remaining..')
-            master_password = getpass('Master Password: ')
+            master_password = getpass('Master Password (--r to reset): ')
+            if(master_password == "--r"):
+                ChangeMasterPassword()
+            master_password = HashPassword(master_password)
         else:
             firstLogin = False
             return True
@@ -158,6 +171,7 @@ def ValidateUser():
     return False
     
 def main():
+    print(HashPassword(''))
     if(firstLogin):
         allow_access = ValidateUser()
         if(not allow_access):
@@ -175,6 +189,8 @@ def main():
         GenerateRandomPassword()
     elif(action == 'c'):
         ClearTerminal()
+    elif(action == 'r'):
+        ChangeMasterPassword()
     main()
 
 if __name__ == "__main__":
